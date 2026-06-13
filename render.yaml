@@ -1,0 +1,73 @@
+# ══════════════════════════════════════════════════════════════
+#  render.yaml — Configuration Render.com
+#  Déposer ce fichier à la RACINE du repo GitHub
+#  Render détecte automatiquement et déploie tout
+# ══════════════════════════════════════════════════════════════
+
+services:
+
+  # ── Backend API Node.js ────────────────────────────────────
+  - type: web
+    name: ludo-master-api
+    runtime: node
+    region: frankfurt          # Frankfurt EU — meilleur latence Afrique
+    rootDir: backend
+    buildCommand: npm install --production
+    startCommand: node src/server.js
+    plan: free
+
+    healthCheckPath: /health   # Render vérifie /health pour déclarer "UP"
+
+    envVars:
+      # ── Publiques ──────────────────────────────────────────
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"         # Render utilise 10000 en interne
+      - key: PLATFORM_FEE_PERCENT
+        value: "10"
+      - key: MIN_DEPOSIT
+        value: "500"
+      - key: MAX_DEPOSIT
+        value: "1000000"
+      - key: MIN_BET
+        value: "200"
+      - key: MAX_BET
+        value: "50000"
+      - key: WONYAPAY_BASE_URL
+        value: https://api.wonyasoft.com/v1
+      - key: WONYAPAY_CALLBACK_URL
+        value: https://ludo-master-api.onrender.com/api/payment/callback
+
+      # ── Secrets (sync: false = à saisir manuellement) ──────
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: "7d"
+      - key: WONYAPAY_API_KEY
+        sync: false
+      - key: WONYAPAY_SECRET
+        sync: false
+      - key: WONYAPAY_MERCHANT_ID
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+
+  # ── Dashboard Admin (Static Site) ─────────────────────────
+  - type: web
+    name: ludo-master-admin
+    runtime: static
+    rootDir: admin
+    staticPublishPath: .
+    plan: free
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
